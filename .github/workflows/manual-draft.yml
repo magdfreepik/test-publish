@@ -1,39 +1,31 @@
 name: Manual Draft Post (Blogger)
 
 on:
-  workflow_dispatch: {}   # تشغيل يدوي فقط
-
-permissions:
-  contents: read
-
-concurrency:
-  group: blogger-manual
-  cancel-in-progress: true
+  workflow_dispatch: {}
 
 jobs:
-  run-once:
+  run-draft:
     runs-on: ubuntu-latest
+
     env:
-      TZ: Asia/Baghdad
-      # أسرار
-      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-      BLOG_URL:        ${{ secrets.BLOG_URL }}
-      CLIENT_ID:       ${{ secrets.CLIENT_ID }}
-      CLIENT_SECRET:   ${{ secrets.CLIENT_SECRET }}
-      REFRESH_TOKEN:   ${{ secrets.REFRESH_TOKEN }}
-      UNSPLASH_ACCESS_KEY: ${{ secrets.UNSPLASH_ACCESS_KEY }}
-      PEXELS_API_KEY:      ${{ secrets.PEXELS_API_KEY }}
-      PIXABAY_API_KEY:     ${{ secrets.PIXABAY_API_KEY }}
-      # سلوك التشغيل (يمكنك جعلها Variables بدلًا من هنا)
-      PUBLISH_MODE: draft     # مسودة
-      RUN_ONCE: "1"           # شغلة واحدة فقط
-      USE_EXTERNAL_CRON: "0"  # لا خادم، فقط تشغيل مباشر
-      SAFE_CALLS_PER_MIN: "3"
-      AI_MAX_RETRIES: "3"
-      AI_BACKOFF_BASE: "4"
+      GEMINI_API_KEY:        ${{ secrets.GEMINI_API_KEY }}
+      BLOG_URL:              ${{ secrets.BLOG_URL }}
+      CLIENT_ID:             ${{ secrets.CLIENT_ID }}
+      CLIENT_SECRET:         ${{ secrets.CLIENT_SECRET }}
+      REFRESH_TOKEN:         ${{ secrets.REFRESH_TOKEN }}
+      # مفاتيح الصور (اختياري)
+      PEXELS_API_KEY:        ${{ secrets.PEXELS_API_KEY }}
+      PIXABAY_API_KEY:       ${{ secrets.PIXABAY_API_KEY }}
+      UNSPLASH_ACCESS_KEY:   ${{ secrets.UNSPLASH_ACCESS_KEY }}
+
+      # إعدادات التشغيل
+      PUBLISH_MODE:          draft
+      RUN_ONCE:              "1"
+      USE_EXTERNAL_CRON:     "0"
+      TZ:                    Asia/Baghdad
 
     steps:
-      - name: Checkout
+      - name: Checkout repo
         uses: actions/checkout@v4
 
       - name: Set up Python
@@ -41,12 +33,10 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install deps
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-      - name: Run once (two slots: morning & evening)
-        run: |
-          echo "Starting manual draft posting..."
-          python main.py
+      - name: Run main.py (draft)
+        run: python main.py
